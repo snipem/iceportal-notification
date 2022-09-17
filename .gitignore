@@ -1,0 +1,12 @@
+
+status.1.json
+status.json
+testdata/hef.json
+testdata/simple.json
+trip.1.json
+trip.json
+.idea/.gitignore
+.idea/iceportal-notification.iml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/misc.xml
+.idea/modules.xml
