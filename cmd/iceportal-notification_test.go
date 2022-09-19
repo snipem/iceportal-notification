@@ -25,7 +25,7 @@ func Test_shouldInformNearStop(t *testing.T) {
 		stop, shouldInform, err := shouldInformNearStop(60)
 		assert.NoError(t, err)
 		assert.True(t, shouldInform)
-		assert.Equal(t, "Fulda", stop.Station.Name)
+		assert.Equal(t, "Town A", stop.Station.Name)
 	},
 	)
 
@@ -43,7 +43,7 @@ func Test_shouldInformNearStop(t *testing.T) {
 		stop, shouldInform, err := shouldInformNearStop(60)
 		assert.NoError(t, err)
 		assert.False(t, shouldInform)
-		assert.Equal(t, "Fulda", stop.Station.Name)
+		assert.Equal(t, "Town A", stop.Station.Name)
 	},
 	)
 
@@ -71,20 +71,21 @@ func Test_shouldInformNearStop(t *testing.T) {
 }
 
 func getMockData(stopMinutesInTheFuture int) string {
+	actualArrivalTime := time.Now().Unix()*1000 + 60*int64(stopMinutesInTheFuture)*1000
 	data := fmt.Sprintf(`
 {
   "trip": {
     "stops": [
       {
-        "station": { "name": "Fulda", "evaNr": "123" },
-        "timetable": { "actualArrivalTime": %d },
+        "station": { "name": "Town A", "evaNr": "123" },
+        "timetable": { "scheduledArrivalTime": 1663480864, "actualArrivalTime": %d },
         "info": { "passed": false }
       }
     ]
   }
 }
 
-`, (time.Now().Unix()+60*int64(stopMinutesInTheFuture))*1000) // n Minutes in the future
+`, actualArrivalTime)
 	return data
 }
 
@@ -101,10 +102,11 @@ func Test_run(t *testing.T) {
 		})
 
 		r := Runner{}
+		r.stationsNotified = append(r.stationsNotified, "1663480000 Town B")
 		err := r.run()
 		assert.NoError(t, err)
-		assert.Len(t, r.stationsNotified, 1)
-		assert.Equal(t, "123", r.stationsNotified[0])
+		assert.Len(t, r.stationsNotified, 2)
+		assert.Equal(t, "1663480864 Town A", r.stationsNotified[1])
 
 	})
 }

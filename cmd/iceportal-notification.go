@@ -5,6 +5,7 @@ import (
 	iceportalapi "github.com/craftamap/iceportal-api"
 	"github.com/gen2brain/beeep"
 	wifiname "github.com/yelinaung/wifi-name"
+	"log"
 	"time"
 )
 
@@ -15,12 +16,11 @@ type Runner struct {
 func main() {
 	runner := Runner{}
 	for {
-		fmt.Println("wifi name ", wifiname.WifiName())
 		if wifiname.WifiName() == "WIFI@DB" ||
 			wifiname.WifiName() == "WIFIonICE" {
 			err := runner.run()
 			if err != nil {
-				panic(err)
+				log.Print(err)
 			}
 		}
 		time.Sleep(30 * time.Second)
@@ -33,15 +33,19 @@ func (r *Runner) run() error {
 		return err
 	}
 
-	if shouldInform && !contains(r.stationsNotified, stop.Station.EvaNr) {
+	if shouldInform && !contains(r.stationsNotified, getUniqueIdentifierForStop(stop)) {
 		err := beeep.Notify(fmt.Sprintf("Nächster Halt: %s", stop.Station.Name), fmt.Sprintf("In %d Minuten", getSecondsFromNowToStop(stop)/60), "")
 		if err != nil {
 			return err
 		}
-		r.stationsNotified = append(r.stationsNotified, stop.Station.EvaNr)
+		r.stationsNotified = append(r.stationsNotified, getUniqueIdentifierForStop(stop))
 	}
 
 	return nil
+}
+
+func getUniqueIdentifierForStop(stop iceportalapi.Stop) string {
+	return fmt.Sprintf("%d %s", stop.Timetable.ScheduledArrivalTime, stop.Station.Name)
 }
 
 func contains(s []string, str string) bool {
